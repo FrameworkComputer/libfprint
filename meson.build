@@ -137,7 +137,7 @@ default_drivers = [
     'focaltech_moc',
 
     # SPI
-    'elanspi',
+    # 'elanspi',
 ]
 
 # FIXME: All the drivers should be fixed by adjusting the byte order.
@@ -185,7 +185,7 @@ driver_helper_mapping = {
     'aes3500' : [ 'aeslib', 'aes3k' ],
     'aes4000' : [ 'aeslib', 'aes3k' ],
     'uru4000' : [ 'nss' ],
-    'elanspi' : [ 'udev' ],
+    #'elanspi' : [ 'udev' ],
     'virtual_image'          : [ 'virtual' ],
     'virtual_device'         : [ 'virtual' ],
     'virtual_device_storage' : [ 'virtual' ],
