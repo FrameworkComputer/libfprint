@@ -1321,13 +1321,26 @@ gx_fp_probe (FpDevice *device)
   gint productid = 0;
 
   /* Claim usb interface */
+  // This prints
+  // LIBUSB_FUNCTION: libusb_handle_events_timeout_completed exit
+  // LIBUSB_FUNCTION: libusb_handle_events_timeout_completed enter
+  // LIBUSB_FUNCTION: libusb10_handle_events_sub enter
   usb_dev = fpi_device_get_usb_device (device);
+
+  // This prints
+  // LIBUSB_FUNCTION: libusb_handle_events_timeout_completed exit
+  // LIBUSB_FUNCTION: libusb_handle_events_timeout_completed enter
+  // LIBUSB_FUNCTION: libusb10_handle_events_sub enter
   if (!g_usb_device_open (usb_dev, &error))
     {
       fpi_device_probe_complete (device, NULL, NULL, error);
       return;
     }
 
+  // This prints
+  // LIBUSB_FUNCTION: libusb_handle_events_timeout_completed exit
+  // LIBUSB_FUNCTION: libusb_handle_events_timeout_completed enter
+  // LIBUSB_FUNCTION: libusb10_handle_events_sub enter
   // Returns LIBUSB_OTHER_ERROR -99
 #ifndef __FreeBSD__
   if (!g_usb_device_reset (usb_dev, &error))

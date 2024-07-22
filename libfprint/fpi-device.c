@@ -722,6 +722,7 @@ fpi_device_action_error (FpDevice *device,
                          GError   *error)
 {
   FpDevicePrivate *priv = fp_device_get_instance_private (device);
+  g_warning ("entering: fpi_device_action_error");
 
   g_return_if_fail (FP_IS_DEVICE (device));
   g_return_if_fail (priv->current_action != FPI_DEVICE_ACTION_NONE);
@@ -731,7 +732,7 @@ fpi_device_action_error (FpDevice *device,
       g_autofree char *action_str = NULL;
 
       action_str = g_enum_to_string (FPI_TYPE_DEVICE_ACTION, priv->current_action);
-      g_debug ("Device reported generic error (%s) during action; action was: %s",
+      g_warning ("Device reported generic error (%s) during action; action was: %s",
                error->message, action_str);
     }
   else
@@ -945,6 +946,7 @@ typedef struct _FpDeviceTaskReturnData
 static gboolean
 fp_device_task_return_in_idle_cb (gpointer user_data)
 {
+  g_warning ("Entering fp_device_task_return_in_idle_cb");
   FpDeviceTaskReturnData *data = user_data;
   FpDevicePrivate *priv = fp_device_get_instance_private (data->device);
   g_autofree char *action_str = NULL;
@@ -970,6 +972,7 @@ fp_device_task_return_in_idle_cb (gpointer user_data)
       data->type != FP_DEVICE_TASK_RETURN_ERROR)
     {
       priv->is_open = TRUE;
+      g_warning ("freebsd: g_object_notify open");
       g_object_notify (G_OBJECT (data->device), "open");
     }
   else if (action == FPI_DEVICE_ACTION_CLOSE)
@@ -978,6 +981,7 @@ fp_device_task_return_in_idle_cb (gpointer user_data)
        * device. Generally, e.g. cancellations should be ignored.
        */
       priv->is_open = FALSE;
+      g_warning ("freebsd: g_object_notify close");
       g_object_notify (G_OBJECT (data->device), "open");
     }
 
@@ -1084,6 +1088,7 @@ fpi_device_return_task_in_idle (FpDevice              *device,
 {
   FpDevicePrivate *priv = fp_device_get_instance_private (device);
   FpDeviceTaskReturnData *data;
+  g_warning ("Entering fpi_device_return_task_in_idle");
 
   data = g_new0 (FpDeviceTaskReturnData, 1);
   data->device = g_object_ref (device);
@@ -1123,6 +1128,7 @@ fpi_device_probe_complete (FpDevice    *device,
   g_return_if_fail (FP_IS_DEVICE (device));
   g_return_if_fail (priv->current_action == FPI_DEVICE_ACTION_PROBE);
 
+  // Reaching here
   g_debug ("Device reported probe completion");
 
   clear_device_cancel_action (device);
@@ -1130,6 +1136,7 @@ fpi_device_probe_complete (FpDevice    *device,
 
   if (!error)
     {
+      g_warning ("fpi_device_report_finger_status: Succeeded");
       if (device_id)
         {
           g_clear_pointer (&priv->device_id, g_free);
@@ -1147,8 +1154,11 @@ fpi_device_probe_complete (FpDevice    *device,
     }
   else
     {
+      // Reaching here
+      g_warning ("fpi_device_report_finger_status: Failed");
       fpi_device_return_task_in_idle (device, FP_DEVICE_TASK_RETURN_ERROR, error);
     }
+  g_warning ("Exiting fpi_device_probe_complete");
 }
 
 /**
@@ -2121,8 +2131,11 @@ fpi_device_report_finger_status (FpDevice           *device,
   FpDevicePrivate *priv = fp_device_get_instance_private (device);
   g_autofree char *status_string = NULL;
 
-  if (priv->finger_status == finger_status)
+  if (priv->finger_status == finger_status) {
+    g_warning ("freebsd: priv->finger_status == finger_status (%d, %d)",
+		   priv->finger_status, finger_status );
     return FALSE;
+  }
 
   status_string = g_flags_to_string (FP_TYPE_FINGER_STATUS_FLAGS, finger_status);
   fp_dbg ("Device reported finger status change: %s", status_string);

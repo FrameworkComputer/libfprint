@@ -246,6 +246,8 @@ usb_device_added_cb (FpContext *self, GUsbDevice *device, GUsbContext *usb_ctx)
     {
       g_debug ("No driver found for USB device %04X:%04X", vid, pid);
       return;
+    } else {
+      g_debug ("Driver found for USB device %04X:%04X", vid, pid);
     }
 
   priv->pending_devices++;

@@ -385,6 +385,7 @@ fp_device_async_initable_init_async (GAsyncInitable     *initable,
                                      gpointer            user_data)
 {
   g_autoptr(GTask) task = NULL;
+  g_warning ("Enter fp_device_async_initable_init_async");
   FpDevice *self = FP_DEVICE (initable);
   FpDevicePrivate *priv = fp_device_get_instance_private (self);
 
