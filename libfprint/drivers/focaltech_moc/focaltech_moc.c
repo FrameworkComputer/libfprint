@@ -1782,6 +1782,74 @@ focaltech_moc_delete_print (FpDevice *device)
   fpi_ssm_start (self->task_ssm, task_ssm_done);
 }
 
+enum moc_clear_storage_states {
+  MOC_CLEAR_STORAGE_SEND,
+  MOC_CLEAR_STORAGE_NUM_STATES,
+};
+
+static void
+focaltech_moc_clear_storage_cb (FpiDeviceFocaltechMoc *self,
+                                uint8_t               *buffer_in,
+                                gsize                  length_in,
+                                GError                *error)
+{
+  FpCmd *fp_cmd = NULL;
+
+  if (error)
+    {
+      fpi_ssm_mark_failed (self->task_ssm, error);
+      return;
+    }
+
+  fp_cmd = (FpCmd *) buffer_in;
+
+  if (fp_cmd->code != 0x04)
+    {
+      fpi_ssm_mark_failed (self->task_ssm,
+                           fpi_device_error_new_msg (FP_DEVICE_ERROR_PROTO,
+                                                     "Clear storage failed: unexpected response code 0x%02x",
+                                                     fp_cmd->code));
+      return;
+    }
+
+  fpi_device_clear_storage_complete (FP_DEVICE (self), NULL);
+  fpi_ssm_next_state (self->task_ssm);
+}
+
+static void
+focaltech_clear_storage_run_state (FpiSsm *ssm, FpDevice *device)
+{
+  FpiDeviceFocaltechMoc *self = FPI_DEVICE_FOCALTECH_MOC (device);
+  guint8 *cmd_buf = NULL;
+  uint16_t cmd_len = 0;
+  uint16_t resp_len = 0;
+
+  switch (fpi_ssm_get_cur_state (ssm))
+    {
+    case MOC_CLEAR_STORAGE_SEND:
+      cmd_len = 0;
+      resp_len = sizeof (uint8_t);
+      cmd_buf = focaltech_moc_compose_cmd (0xac, NULL, cmd_len);
+      focaltech_moc_get_cmd (device, cmd_buf,
+                             sizeof (FpCmd) + cmd_len + sizeof (uint8_t),
+                             sizeof (FpCmd) + resp_len + sizeof (uint8_t),
+                             0,
+                             focaltech_moc_clear_storage_cb);
+      break;
+    }
+}
+
+static void
+focaltech_moc_clear_storage (FpDevice *device)
+{
+  FpiDeviceFocaltechMoc *self = FPI_DEVICE_FOCALTECH_MOC (device);
+
+  self->task_ssm = fpi_ssm_new (device,
+                                focaltech_clear_storage_run_state,
+                                MOC_CLEAR_STORAGE_NUM_STATES);
+  fpi_ssm_start (self->task_ssm, task_ssm_done);
+}
+
 enum moc_list_states {
   MOC_LIST_GET_ENROLLED_INFO,
   MOC_LIST_GET_ENROLLED_LIST,
@@ -1877,6 +1945,7 @@ fpi_device_focaltech_moc_class_init (FpiDeviceFocaltechMocClass *klass)
   dev_class->enroll = focaltech_moc_enroll;
   dev_class->identify = focaltech_moc_identify;
   dev_class->delete = focaltech_moc_delete_print;
+  dev_class->clear_storage = focaltech_moc_clear_storage;
   dev_class->list = focaltech_moc_list;
 
   fpi_device_class_auto_initialize_features (dev_class);
