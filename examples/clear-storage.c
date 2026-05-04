@@ -123,7 +123,7 @@ start_clear_storage (FpDevice *dev, ClearStorageData *clear_storage_data)
 
   g_print ("Clear device storage? [Y/n]? ");
   if (fgets (buffer, sizeof (buffer), stdin) &&
-      (buffer[0] == 'Y' || buffer[0] == 'y'))
+      (buffer[0] == 'Y' || buffer[0] == 'y' || buffer[0] == '\n'))
     {
       fp_device_clear_storage (dev, clear_storage_data->cancellable,
                                (GAsyncReadyCallback) on_clear_storage_completed,
